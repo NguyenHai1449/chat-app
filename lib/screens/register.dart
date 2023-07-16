@@ -1,4 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+final _firebase = FirebaseAuth.instance;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -11,25 +14,47 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey();
-
-  final FocusNode _focusNodeEmail = FocusNode();
-  final FocusNode _focusNodePassword = FocusNode();
-  final FocusNode _focusNodeConfirmPassword = FocusNode();
-  final TextEditingController _controllerEmail = TextEditingController();
-  final TextEditingController _controllerPassword = TextEditingController();
-  final TextEditingController _controllerConFirmPassword =
-      TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _rePasswordController = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _obscureRePassword = true;
+
+  void _showMessageInfo(String message) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _submitRegister() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        final result = await _firebase.createUserWithEmailAndPassword(
+            email: _emailController.text, password: _passwordController.text);
+
+        final user = result.user;
+        if (user != null) {
+          await user.updateDisplayName(_nameController.text);
+          _showMessageInfo('Registered Successfully');
+        }
+
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+      } on FirebaseAuthException catch (error) {
+        _showMessageInfo(error.message.toString());
+      }
+    }
+  }
 
   @override
   void dispose() {
-    _focusNodeEmail.dispose();
-    _focusNodePassword.dispose();
-    _focusNodeConfirmPassword.dispose();
-    _controllerEmail.dispose();
-    _controllerPassword.dispose();
-    _controllerConFirmPassword.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _rePasswordController.dispose();
     super.dispose();
   }
 
@@ -40,10 +65,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 30.0),
+          padding: const EdgeInsets.all(30.0),
           child: Column(
             children: [
-              const SizedBox(height: 100),
+              const SizedBox(height: 150),
               Text(
                 "Register",
                 style: Theme.of(context).textTheme.headlineLarge,
@@ -53,10 +78,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 "Create your account",
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
-              const SizedBox(height: 35),
+              const SizedBox(height: 60),
               TextFormField(
-                controller: _controllerEmail,
-                focusNode: _focusNodeEmail,
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: "Fullname",
+                  prefixIcon: const Icon(Icons.person_2_outlined),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please enter fullname.";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: "Email",
@@ -68,7 +112,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                validator: (String? value) {
+                validator: (value) {
                   if (value == null || value.isEmpty) {
                     return "Please enter email.";
                   } else if (!(value.contains('@') && value.contains('.'))) {
@@ -76,17 +120,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   }
                   return null;
                 },
-                onEditingComplete: () => _focusNodePassword.requestFocus(),
               ),
               const SizedBox(height: 10),
               TextFormField(
-                controller: _controllerPassword,
+                controller: _passwordController,
                 obscureText: _obscurePassword,
-                focusNode: _focusNodePassword,
                 keyboardType: TextInputType.visiblePassword,
                 decoration: InputDecoration(
                   labelText: "Password",
-                  prefixIcon: const Icon(Icons.password_outlined),
+                  prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
@@ -103,35 +145,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                validator: (String? value) {
+                validator: (value) {
                   if (value == null || value.isEmpty) {
                     return "Please enter password.";
-                  } else if (value.length < 8) {
-                    return "Password must be at least 8 character.";
+                  } else if (value.length < 6) {
+                    return "Password must be at least 6 character.";
                   }
                   return null;
                 },
-                onEditingComplete: () =>
-                    _focusNodeConfirmPassword.requestFocus(),
               ),
               const SizedBox(height: 10),
               TextFormField(
-                controller: _controllerConFirmPassword,
-                obscureText: _obscurePassword,
-                focusNode: _focusNodeConfirmPassword,
+                controller: _rePasswordController,
+                obscureText: _obscureRePassword,
                 keyboardType: TextInputType.visiblePassword,
                 decoration: InputDecoration(
                   labelText: "Confirm Password",
-                  prefixIcon: const Icon(Icons.password_outlined),
+                  prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                      icon: _obscurePassword
-                          ? const Icon(Icons.visibility_outlined)
-                          : const Icon(Icons.visibility_off_outlined)),
+                    onPressed: () {
+                      setState(() {
+                        _obscureRePassword = !_obscureRePassword;
+                      });
+                    },
+                    icon: _obscureRePassword
+                        ? const Icon(Icons.visibility_outlined)
+                        : const Icon(Icons.visibility_off_outlined),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -139,16 +179,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                validator: (String? value) {
+                validator: (value) {
                   if (value == null || value.isEmpty) {
                     return "Please enter password.";
-                  } else if (value != _controllerPassword.text) {
+                  } else if (value != _passwordController.text) {
                     return "Password doesn't match.";
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 60),
               Column(
                 children: [
                   ElevatedButton(
@@ -158,34 +198,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    onPressed: () {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            width: 200,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.secondary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            behavior: SnackBarBehavior.floating,
-                            content: const Text("Registered Successfully"),
-                          ),
-                        );
-
-                        _formKey.currentState?.reset();
-
-                        Navigator.pop(context);
-                      }
-                    },
+                    onPressed: _submitRegister,
                     child: const Text("Register"),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Already have an account?"),
+                      const Text("Already have an account ?"),
                       TextButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => Navigator.of(context).pop(),
                         child: const Text("Login"),
                       ),
                     ],

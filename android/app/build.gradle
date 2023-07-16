@@ -11,6 +11,22 @@ if (flutterRoot == null) {
     throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
 
+def flutterMinSdkVersionName = localProperties.getProperty('flutter.minSdkVersion')
+if (flutterMinSdkVersionName == null) {
+    flutterMinSdkVersionName = '21'
+}
+
+def flutterTargetSdkVersionName = localProperties.getProperty('flutter.targetSdkVersion')
+if (flutterTargetSdkVersionName == null) {
+    flutterTargetSdkVersionName = '33'
+}
+
+def flutterCompileSdkVersionName = localProperties.getProperty('flutter.compileSdkVersion')
+if (flutterCompileSdkVersionName == null) {
+    flutterCompileSdkVersionName = '33'
+}
+
+
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
     flutterVersionCode = '1'
@@ -27,7 +43,7 @@ apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
     namespace "com.example.chat_app"
-    compileSdkVersion flutter.compileSdkVersion
+    compileSdkVersion flutterCompileSdkVersionName.toInteger()
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -48,8 +64,8 @@ android {
         applicationId "com.example.chat_app"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion flutter.minSdkVersion
-        targetSdkVersion flutter.targetSdkVersion
+         minSdkVersion flutterMinSdkVersionName.toInteger()
+        targetSdkVersion flutterTargetSdkVersionName.toInteger()
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }

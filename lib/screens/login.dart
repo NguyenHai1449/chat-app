@@ -1,6 +1,8 @@
-import 'package:chat_app/screens/home_screen.dart';
-import 'package:chat_app/screens/register_screen.dart';
+import 'package:chat_app/screens/register.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+final _firebase = FirebaseAuth.instance;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,35 +15,45 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-  final FocusNode _focusNodeEmail = FocusNode();
-  final FocusNode _focusNodePassword = FocusNode();
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
   bool _obscurePassword = true;
+
+  void _submitLogin() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        await _firebase.signInWithEmailAndPassword(
+            email: _emailController.text, password: _passwordController.text);
+      } on FirebaseAuthException catch (e) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message.toString())));
+      }
+    }
+  }
+
+  void _goToSignup() {
+    _formKey.currentState?.reset();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) {
+          return const RegisterScreen();
+        },
+      ),
+    );
+  }
 
   @override
   void dispose() {
-    _focusNodeEmail.dispose();
     _emailController.dispose();
-    _focusNodeEmail.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  void _login() async {
-    Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomeScreen()));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-        centerTitle: true,
-      ),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -61,11 +73,10 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 60),
               TextFormField(
                 controller: _emailController,
-                focusNode: _focusNodeEmail,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: "Email",
-                  prefixIcon: const Icon(Icons.person_outline),
+                  prefixIcon: const Icon(Icons.email_outlined),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -73,33 +84,31 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                onEditingComplete: () => _focusNodePassword.requestFocus(),
-                validator: (String? value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter username.";
+                validator: (value) {
+                  if (value == null || value.isEmpty || !value.contains('@')) {
+                    return "Please enter email";
                   }
-
                   return null;
                 },
               ),
               const SizedBox(height: 10),
               TextFormField(
                 controller: _passwordController,
-                focusNode: _focusNodePassword,
                 obscureText: _obscurePassword,
                 keyboardType: TextInputType.visiblePassword,
                 decoration: InputDecoration(
                   labelText: "Password",
-                  prefixIcon: const Icon(Icons.password_outlined),
+                  prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                      icon: _obscurePassword
-                          ? const Icon(Icons.visibility_outlined)
-                          : const Icon(Icons.visibility_off_outlined)),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                    icon: _obscurePassword
+                        ? const Icon(Icons.visibility_outlined)
+                        : const Icon(Icons.visibility_off_outlined),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -107,11 +116,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                validator: (String? value) {
-                  if (value == null || value.isEmpty) {
+                validator: (value) {
+                  if (value == null || value.trim().length < 6) {
                     return "Please enter password.";
                   }
-
                   return null;
                 },
               ),
@@ -125,37 +133,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    onPressed: () {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return const HomeScreen();
-                            },
-                          ),
-                        );
-                      }
-                    },
+                    onPressed: _submitLogin,
                     child: const Text("Login"),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Don't have an account?"),
+                      const Text("Don't have an account ?"),
                       TextButton(
-                        onPressed: () {
-                          _formKey.currentState?.reset();
-
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return const RegisterScreen();
-                              },
-                            ),
-                          );
-                        },
+                        onPressed: _goToSignup,
                         child: const Text("Signup"),
                       ),
                     ],
