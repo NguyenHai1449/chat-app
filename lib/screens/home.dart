@@ -16,7 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<TabData> _tabs = [
-    TabData(title: 'Chats', widget: const ChatScreenCustom()),
+    TabData(title: 'Chats', widget: const ChatScreen()),
     TabData(title: 'Contacts', widget: const ContactsTab()),
     TabData(title: 'Settings', widget: const SettingsTab()),
   ];
