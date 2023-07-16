@@ -1,6 +1,6 @@
 import 'package:chat_app/models/tab.dart';
-import 'package:chat_app/widgets/chats_tab.dart';
 import 'package:chat_app/widgets/contacts_tab.dart';
+import 'package:chat_app/widgets/chat.dart';
 import 'package:chat_app/widgets/settings_tab.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<TabData> _tabs = [
-    TabData(title: 'Chats', widget: const ChatsTab()),
+    TabData(title: 'Chats', widget: const ChatScreenCustom()),
     TabData(title: 'Contacts', widget: const ContactsTab()),
     TabData(title: 'Settings', widget: const SettingsTab()),
   ];

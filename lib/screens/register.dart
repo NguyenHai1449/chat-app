@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
 final _firebase = FirebaseAuth.instance;
+FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,13 +17,15 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey();
-  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _rePasswordController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureRePassword = true;
+  bool _isLoading = false;
 
   void _showMessageInfo(String message) {
     ScaffoldMessenger.of(context).clearSnackBars();
@@ -31,19 +36,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _submitRegister() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final result = await _firebase.createUserWithEmailAndPassword(
+        setState(() => _isLoading = true);
+        final userCredentials = await _firebase.createUserWithEmailAndPassword(
             email: _emailController.text, password: _passwordController.text);
 
-        final user = result.user;
-        if (user != null) {
-          await user.updateDisplayName(_nameController.text);
-          _showMessageInfo('Registered Successfully');
-        }
+        await _firestore
+            .collection('users')
+            .doc(userCredentials.user!.uid)
+            .set({
+          'first_name': _firstNameController.text,
+          'last_name': _lastNameController.text,
+          'email': _emailController.text,
+          'image_url': '',
+        });
+
+        _showMessageInfo('Registered Successfully');
 
         if (context.mounted) {
           Navigator.pop(context);
         }
       } on FirebaseAuthException catch (error) {
+        setState(() => _isLoading = false);
         _showMessageInfo(error.message.toString());
       }
     }
@@ -51,7 +64,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _rePasswordController.dispose();
@@ -80,9 +94,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 60),
               TextFormField(
-                controller: _nameController,
+                controller: _firstNameController,
                 decoration: InputDecoration(
-                  labelText: "Fullname",
+                  labelText: "First name",
                   prefixIcon: const Icon(Icons.person_2_outlined),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -93,7 +107,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Please enter fullname.";
+                    return "Please enter first name.";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _lastNameController,
+                decoration: InputDecoration(
+                  labelText: "Last name",
+                  prefixIcon: const Icon(Icons.person_2_outlined),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please enter last name.";
                   }
                   return null;
                 },
@@ -198,8 +232,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    onPressed: _submitRegister,
-                    child: const Text("Register"),
+                    onPressed: _isLoading ? null : _submitRegister,
+                    child: _isLoading
+                        ? const Text("Loading...")
+                        : const Text("Register"),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
