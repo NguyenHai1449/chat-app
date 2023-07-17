@@ -153,6 +153,7 @@ class _SettingsTabState extends State<SettingsTab> {
           alignment: Alignment.topCenter,
           child: Column(
             children: [
+              const SizedBox(height: 16),
               if (_pickedImageFile != null)
                 CircleAvatar(
                   radius: 50,
@@ -166,6 +167,11 @@ class _SettingsTabState extends State<SettingsTab> {
               const SizedBox(height: 16),
               Text(
                 '${user['first_name']} ${user['last_name']}',
+                style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _auth.currentUser?.email ?? '',
                 style: const TextStyle(fontSize: 18),
               ),
               const SizedBox(height: 8),
