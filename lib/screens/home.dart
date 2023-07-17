@@ -1,6 +1,5 @@
 import 'package:chat_app/models/tab.dart';
-import 'package:chat_app/widgets/contacts_tab.dart';
-import 'package:chat_app/widgets/chat.dart';
+import 'package:chat_app/screens/chat.dart';
 import 'package:chat_app/widgets/settings_tab.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -16,8 +15,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<TabData> _tabs = [
-    TabData(title: 'Chats', widget: const ChatScreen()),
-    TabData(title: 'Contacts', widget: const ContactsTab()),
+    TabData(title: 'Chat', widget: const ChatScreen()),
     TabData(title: 'Settings', widget: const SettingsTab()),
   ];
 
@@ -49,11 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.chat_rounded),
-            label: 'Chats',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_pin_outlined),
-            label: 'Contacts',
+            label: 'Chat',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),

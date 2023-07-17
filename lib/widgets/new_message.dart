@@ -40,7 +40,8 @@ class _NewMessageState extends State<NewMessage> {
       'text': enteredMessage,
       'createdAt': Timestamp.now(),
       'userId': user.uid,
-      'username': userData.data()!['username'],
+      'username':
+          userData.data()!['first_name'] + ' ' + userData.data()!['last_name'],
       'userImage': userData.data()!['image_url'],
     });
   }
@@ -57,7 +58,7 @@ class _NewMessageState extends State<NewMessage> {
               textCapitalization: TextCapitalization.sentences,
               autocorrect: true,
               enableSuggestions: true,
-              decoration: const InputDecoration(labelText: 'Send a message...'),
+              decoration: const InputDecoration(hintText: 'Send a message...'),
             ),
           ),
           IconButton(

@@ -88,19 +88,24 @@ class _SettingsTabState extends State<SettingsTab> {
 
         setState(() => _isLoading = true);
 
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('image_user')
-            .child('${user.uid}.jpg');
-        await storageRef.putFile(_pickedImageFile!);
-
-        final imageUrl = await storageRef.getDownloadURL();
-
-        await _firestore.collection('users').doc(user.uid).update({
-          'first_name': _firstNameController.text,
-          'last_name': _lastNameController.text,
-          'image_url': imageUrl,
-        });
+        if (_pickedImageFile != null) {
+          final storageRef = FirebaseStorage.instance
+              .ref()
+              .child('image_user')
+              .child('${user.uid}.jpg');
+          await storageRef.putFile(_pickedImageFile!);
+          final imageUrl = await storageRef.getDownloadURL();
+          await _firestore.collection('users').doc(user.uid).update({
+            'first_name': _firstNameController.text,
+            'last_name': _lastNameController.text,
+            'image_url': imageUrl,
+          });
+        } else {
+          await _firestore.collection('users').doc(user.uid).update({
+            'first_name': _firstNameController.text,
+            'last_name': _lastNameController.text,
+          });
+        }
 
         setState(() => _isLoading = false);
         _showMessageInfo('Profile updated successfully.');
@@ -113,6 +118,7 @@ class _SettingsTabState extends State<SettingsTab> {
 
   void _reset() async {
     _formKey.currentState!.reset();
+    setState(() => _pickedImageFile = null);
   }
 
   @override

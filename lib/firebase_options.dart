@@ -54,6 +54,7 @@ class DefaultFirebaseOptions {
     appId: '1:683558866018:android:71c602731733b9cb16153b',
     messagingSenderId: '683558866018',
     projectId: 'chat-app-a3205',
+    databaseURL: 'https://chat-app-a3205-default-rtdb.firebaseio.com',
     storageBucket: 'chat-app-a3205.appspot.com',
   );
 
@@ -62,6 +63,7 @@ class DefaultFirebaseOptions {
     appId: '1:683558866018:ios:2b1cb4fcbb82ab1716153b',
     messagingSenderId: '683558866018',
     projectId: 'chat-app-a3205',
+    databaseURL: 'https://chat-app-a3205-default-rtdb.firebaseio.com',
     storageBucket: 'chat-app-a3205.appspot.com',
     iosClientId: '683558866018-1l1bv5lin1hjvb0j5vrku3l78piga5ig.apps.googleusercontent.com',
     iosBundleId: 'com.example.chatApp',
