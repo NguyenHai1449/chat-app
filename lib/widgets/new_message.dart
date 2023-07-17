@@ -21,29 +21,34 @@ class _NewMessageState extends State<NewMessage> {
   }
 
   void _submitMessage() async {
-    final enteredMessage = _messageController.text;
+    try {
+      final enteredMessage = _messageController.text;
 
-    if (enteredMessage.trim().isEmpty) {
-      return;
+      if (enteredMessage.trim().isEmpty) {
+        return;
+      }
+
+      FocusScope.of(context).unfocus();
+      _messageController.clear();
+
+      final user = FirebaseAuth.instance.currentUser!;
+      final userData = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      await FirebaseFirestore.instance.collection('chat').add({
+        'text': enteredMessage,
+        'createdAt': Timestamp.now(),
+        'userId': user.uid,
+        'username': userData.data()!['first_name'] +
+            ' ' +
+            userData.data()!['last_name'],
+        'userImage': userData.data()!['image_url'],
+      });
+    } catch (e) {
+      print(e);
     }
-
-    FocusScope.of(context).unfocus();
-    _messageController.clear();
-
-    final user = FirebaseAuth.instance.currentUser!;
-    final userData = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get();
-
-    FirebaseFirestore.instance.collection('chat').add({
-      'text': enteredMessage,
-      'createdAt': Timestamp.now(),
-      'userId': user.uid,
-      'username':
-          userData.data()!['first_name'] + ' ' + userData.data()!['last_name'],
-      'userImage': userData.data()!['image_url'],
-    });
   }
 
   @override
